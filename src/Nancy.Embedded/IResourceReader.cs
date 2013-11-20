@@ -1,4 +1,4 @@
-﻿namespace Nancy.ViewEngines
+﻿namespace Nancy.Embedded
 {
     using System;
     using System.Collections.Generic;

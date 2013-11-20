@@ -6,25 +6,26 @@ namespace Nancy.Tests.Unit.ViewEngines
     using System.Linq;
     using System.Reflection;
     using FakeItEasy;
+    using Nancy.Embedded;
     using Nancy.ViewEngines;
     using Xunit;
 
-    public class ResourceViewLocationProviderFixture
+    public class EmbeddedResourceViewLocationProviderFixture
     {
         private readonly IResourceReader reader;
         private readonly IResourceAssemblyProvider resourceAssemblyProvider;
-        private readonly ResourceViewLocationProvider viewProvider;
+        private readonly EmbeddedResourceViewLocationProvider viewProvider;
 
-        public ResourceViewLocationProviderFixture()
+        public EmbeddedResourceViewLocationProviderFixture()
         {
-            ResourceViewLocationProvider.Ignore.Clear(); 
+            EmbeddedResourceViewLocationProvider.Ignore.Clear(); 
             this.reader = A.Fake<IResourceReader>();
             this.resourceAssemblyProvider = A.Fake<IResourceAssemblyProvider>();
-            this.viewProvider = new ResourceViewLocationProvider(this.reader, this.resourceAssemblyProvider);
+            this.viewProvider = new EmbeddedResourceViewLocationProvider(this.reader, this.resourceAssemblyProvider);
 
-            if (!ResourceViewLocationProvider.RootNamespaces.ContainsKey(this.GetType().Assembly))
+            if (!EmbeddedResourceViewLocationProvider.RootNamespaces.ContainsKey(this.GetType().Assembly))
             {
-                ResourceViewLocationProvider.RootNamespaces.Add(this.GetType().Assembly, "Some.Resource");
+                EmbeddedResourceViewLocationProvider.RootNamespaces.Add(this.GetType().Assembly, "Some.Resource");
             }
 
             A.CallTo(() => this.resourceAssemblyProvider.GetAssembliesToScan()).Returns(new[] { this.GetType().Assembly });
@@ -114,7 +115,7 @@ namespace Nancy.Tests.Unit.ViewEngines
             // Given
             var extensions = new[] { "html" };
 
-            ResourceViewLocationProvider.RootNamespaces.Remove(this.GetType().Assembly);
+            EmbeddedResourceViewLocationProvider.RootNamespaces.Remove(this.GetType().Assembly);
 
             var match = new Tuple<string, Func<StreamReader>>(
                 "Some.Resource.View.html",
@@ -135,7 +136,7 @@ namespace Nancy.Tests.Unit.ViewEngines
             // Given
             var extensions = new[] { "html" };
 
-            ResourceViewLocationProvider.RootNamespaces.Remove(this.GetType().Assembly);
+            EmbeddedResourceViewLocationProvider.RootNamespaces.Remove(this.GetType().Assembly);
 
             var match = new Tuple<string, Func<StreamReader>>(
                 "Some.Resource.View.html",
@@ -202,7 +203,7 @@ namespace Nancy.Tests.Unit.ViewEngines
                 this.GetType().Assembly
             });
 
-            ResourceViewLocationProvider.Ignore.Add(this.GetType().Assembly);
+            EmbeddedResourceViewLocationProvider.Ignore.Add(this.GetType().Assembly);
 
             var extensions = new[] { "html" };
 
