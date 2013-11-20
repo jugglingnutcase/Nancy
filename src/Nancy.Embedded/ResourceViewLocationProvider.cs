@@ -1,5 +1,6 @@
-﻿namespace Nancy.ViewEngines
+﻿namespace Nancy.Embedded
 {
+    using Nancy.ViewEngines;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -9,7 +10,7 @@
     /// <summary>
     /// Contains the functionality for locating a view that has been embedded into an assembly resource.
     /// </summary>
-    public class ResourceViewLocationProvider : IViewLocationProvider
+    public class EmbeddedResourceViewLocationProvider : IViewLocationProvider
     {
         private readonly IResourceReader resourceReader;
         private readonly IResourceAssemblyProvider resourceAssemblyProvider;
@@ -25,19 +26,19 @@
         public readonly static IList<Assembly> Ignore = new List<Assembly>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ResourceViewLocationProvider"/> class.
+        /// Initializes a new instance of the <see cref="EmbeddedResourceViewLocationProvider"/> class.
         /// </summary>
-        public ResourceViewLocationProvider()
+        public EmbeddedResourceViewLocationProvider()
             : this(new DefaultResourceReader(), new ResourceAssemblyProvider())
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ResourceViewLocationProvider"/> class.
+        /// Initializes a new instance of the <see cref="EmbeddedResourceViewLocationProvider"/> class.
         /// </summary>
         /// <param name="resourceReader">An <see cref="IResourceReader"/> instance that should be used when extracting embedded views.</param>
         /// <param name="resourceAssemblyProvider">An <see cref="IResourceAssemblyProvider"/> instance that should be used to determine which assemblies to scan for embedded views.</param>
-        public ResourceViewLocationProvider(IResourceReader resourceReader, IResourceAssemblyProvider resourceAssemblyProvider)
+        public EmbeddedResourceViewLocationProvider(IResourceReader resourceReader, IResourceAssemblyProvider resourceAssemblyProvider)
         {
             this.resourceReader = resourceReader;
             this.resourceAssemblyProvider = resourceAssemblyProvider;

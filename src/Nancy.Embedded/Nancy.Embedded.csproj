@@ -47,6 +47,9 @@
     </Compile>
     <Compile Include="Conventions\EmbeddedStaticContentConventionsExtensions.cs" />
     <Compile Include="Conventions\EmbeddedStaticContentConventionBuilder.cs" />
+    <Compile Include="DefaultResourceReader.cs" />
+    <Compile Include="IResourceReader.cs" />
+    <Compile Include="ResourceViewLocationProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Nancy\Nancy.csproj">
