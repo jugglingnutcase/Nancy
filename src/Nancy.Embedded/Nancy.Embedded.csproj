@@ -50,6 +50,7 @@
     <Compile Include="DefaultResourceReader.cs" />
     <Compile Include="IResourceReader.cs" />
     <Compile Include="EmbeddedResourceViewLocationProvider.cs" />
+    <Compile Include="Registrations.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Nancy\Nancy.csproj">
