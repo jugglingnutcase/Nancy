@@ -10,12 +10,12 @@
     public class Registrations : ApplicationRegistrations
     {
         /// <summary>
-        /// Registers the <see cref="EmbeddedResourceViewLocationProvider"/> with the container to enable
+        /// Registers the <see cref="EmbeddedViewLocationProvider"/> with the container to enable
         /// embedded views
         /// </summary>
         public Registrations()
         {
-            this.Register<IViewLocationProvider>(typeof(EmbeddedResourceViewLocationProvider));
+            this.Register<IViewLocationProvider>(typeof(EmbeddedViewLocationProvider));
         }
     }
 }

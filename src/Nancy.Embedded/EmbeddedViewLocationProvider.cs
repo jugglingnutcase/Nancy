@@ -10,7 +10,7 @@
     /// <summary>
     /// Contains the functionality for locating a view that has been embedded into an assembly resource.
     /// </summary>
-    public class EmbeddedResourceViewLocationProvider : IViewLocationProvider
+    public class EmbeddedViewLocationProvider : IViewLocationProvider
     {
         private readonly IResourceReader resourceReader;
         private readonly IResourceAssemblyProvider resourceAssemblyProvider;
@@ -26,19 +26,19 @@
         public readonly static IList<Assembly> Ignore = new List<Assembly>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EmbeddedResourceViewLocationProvider"/> class.
+        /// Initializes a new instance of the <see cref="EmbeddedViewLocationProvider"/> class.
         /// </summary>
-        public EmbeddedResourceViewLocationProvider()
+        public EmbeddedViewLocationProvider()
             : this(new DefaultResourceReader(), new ResourceAssemblyProvider())
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EmbeddedResourceViewLocationProvider"/> class.
+        /// Initializes a new instance of the <see cref="EmbeddedViewLocationProvider"/> class.
         /// </summary>
         /// <param name="resourceReader">An <see cref="IResourceReader"/> instance that should be used when extracting embedded views.</param>
         /// <param name="resourceAssemblyProvider">An <see cref="IResourceAssemblyProvider"/> instance that should be used to determine which assemblies to scan for embedded views.</param>
-        public EmbeddedResourceViewLocationProvider(IResourceReader resourceReader, IResourceAssemblyProvider resourceAssemblyProvider)
+        public EmbeddedViewLocationProvider(IResourceReader resourceReader, IResourceAssemblyProvider resourceAssemblyProvider)
         {
             this.resourceReader = resourceReader;
             this.resourceAssemblyProvider = resourceAssemblyProvider;
