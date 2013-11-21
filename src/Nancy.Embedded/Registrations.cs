@@ -3,7 +3,6 @@
     using Nancy;
     using Nancy.Bootstrapper;
     using Nancy.ViewEngines;
-    using System.Reflection;
 
     /// <summary>
     /// Application registrations supporting views embedded in an assembly
