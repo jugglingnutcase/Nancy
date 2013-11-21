@@ -10,13 +10,13 @@ namespace Nancy.Tests.Unit.ViewEngines
     using Nancy.ViewEngines;
     using Xunit;
 
-    public class EmbeddedResourceViewLocationProviderFixture
+    public class EmbeddedViewLocationProviderFixture
     {
         private readonly IResourceReader reader;
         private readonly IResourceAssemblyProvider resourceAssemblyProvider;
         private readonly EmbeddedViewLocationProvider viewProvider;
 
-        public EmbeddedResourceViewLocationProviderFixture()
+        public EmbeddedViewLocationProviderFixture()
         {
             EmbeddedViewLocationProvider.Ignore.Clear(); 
             this.reader = A.Fake<IResourceReader>();
