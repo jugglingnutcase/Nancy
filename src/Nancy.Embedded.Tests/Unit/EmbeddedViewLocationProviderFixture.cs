@@ -110,51 +110,6 @@ namespace Nancy.Tests.Unit.ViewEngines
         }
 
         [Fact]
-        public void Should_throw_invalid_operation_exception_if_only_one_view_was_found_and_no_root_namespace_has_been_defined()
-        {
-            // Given
-            var extensions = new[] { "html" };
-
-            EmbeddedViewLocationProvider.RootNamespaces.Remove(this.GetType().Assembly);
-
-            var match = new Tuple<string, Func<StreamReader>>(
-                "Some.Resource.View.html",
-                () => null);
-
-            A.CallTo(() => this.reader.GetResourceStreamMatches(A<Assembly>._, A<IEnumerable<string>>._)).Returns(new[] { match });
-
-            // When
-            var exception = Record.Exception(() => this.viewProvider.GetLocatedViews(extensions).ToList());
-
-            // Then
-            exception.ShouldBeOfType<InvalidOperationException>();
-        }
-
-        [Fact]
-        public void Should_set_error_message_when_throwing_invalid_operation_exception_due_to_not_being_able_to_figure_out_common_namespace()
-        {
-            // Given
-            var extensions = new[] { "html" };
-
-            EmbeddedViewLocationProvider.RootNamespaces.Remove(this.GetType().Assembly);
-
-            var match = new Tuple<string, Func<StreamReader>>(
-                "Some.Resource.View.html",
-                () => null);
-
-            A.CallTo(() => this.reader.GetResourceStreamMatches(A<Assembly>._, A<IEnumerable<string>>._)).Returns(new[] { match });
-
-            var expectedErrorMessage =
-                string.Format("Only one view was found in assembly {0}, but no rootnamespace had been registered.", this.GetType().Assembly.FullName);
-
-            // When
-            var exception = Record.Exception(() => this.viewProvider.GetLocatedViews(extensions).ToList());
-
-            // Then
-            exception.Message.ShouldEqual(expectedErrorMessage);
-        }
-
-        [Fact]
         public void Should_return_view_location_result_where_location_is_set_in_platform_neutral_format()
         {
             // Given
