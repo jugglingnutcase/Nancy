@@ -28,7 +28,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="EmbeddedViewLocationProvider"/> class.
         /// </summary>
-        public EmbeddedViewLocationProvider()
+        public EmbeddedViewLocationProvider() 
             : this(new DefaultResourceReader(), new ResourceAssemblyProvider())
         {
         }
@@ -52,130 +52,141 @@
         /// <remarks>If no views could be located, this method should return an empty enumerable, never <see langword="null"/>.</remarks>
         public IEnumerable<ViewLocationResult> GetLocatedViews(IEnumerable<string> supportedViewExtensions)
         {
-            if (supportedViewExtensions == null || !supportedViewExtensions.Any())
+            if (supportedViewExtensions == null)
             {
                 return Enumerable.Empty<ViewLocationResult>();
             }
 
-            return this.resourceAssemblyProvider
+            var assembliesToScan = this.resourceAssemblyProvider
                 .GetAssembliesToScan()
                 .Union(RootNamespaces.Keys)
-                .Where(x => !Ignore.Contains(x))
-                .SelectMany(x => GetViewLocations(x, supportedViewExtensions));
+                .Where(assembly => !Ignore.Contains(assembly));
+
+            return assembliesToScan.SelectMany(assembly => GetViewLocations(assembly, supportedViewExtensions));
         }
 
         /// <summary>
         /// Returns an <see cref="ViewLocationResult"/> instance for all the views matching the viewName that could be located by the provider.
         /// </summary>
         /// <param name="supportedViewExtensions">An <see cref="IEnumerable{T}"/> instance, containing the view engine file extensions that is supported by the running instance of Nancy.</param>
+        /// <param name="location">The location of the view to try and find</param>
         /// <param name="viewName">The name of the view to try and find</param>
         /// <returns>An <see cref="IEnumerable{T}"/> instance, containing <see cref="ViewLocationResult"/> instances for the located views.</returns>
         /// <remarks>If no views could be located, this method should return an empty enumerable, never <see langword="null"/>.</remarks>
         public IEnumerable<ViewLocationResult> GetLocatedViews(IEnumerable<string> supportedViewExtensions, string location, string viewName)
         {
-            var allResults = this.GetLocatedViews(supportedViewExtensions);
+            return GetLocatedViews(supportedViewExtensions).Where(result => IsMatch(location, viewName, result));
+        }
 
-            return allResults.Where(vlr => vlr.Location.Equals(location, StringComparison.OrdinalIgnoreCase) &&
-                                           vlr.Name.Equals(viewName, StringComparison.OrdinalIgnoreCase));
+        private static bool IsMatch(string location, string viewName, ViewLocationResult result)
+        {
+            return result.Location.Equals(location, StringComparison.OrdinalIgnoreCase)
+                && result.Name.Equals(viewName, StringComparison.OrdinalIgnoreCase);
         }
 
         private IEnumerable<ViewLocationResult> GetViewLocations(Assembly assembly, IEnumerable<string> supportedViewExtensions)
         {
-            var resourceStreams =
-                this.resourceReader.GetResourceStreamMatches(assembly, supportedViewExtensions);
-
+            var resourceStreams = this.resourceReader.GetResourceStreamMatches(assembly, supportedViewExtensions);
             if (!resourceStreams.Any())
             {
-                return Enumerable.Empty<ViewLocationResult>();
+                yield break;
             }
 
-            if (resourceStreams.Count() == 1 && !RootNamespaces.ContainsKey(assembly))
+            string rootNamespace;
+            if (!RootNamespaces.TryGetValue(assembly, out rootNamespace))
             {
-                var errorMessage =
-                    string.Format("Only one view was found in assembly {0}, but no rootnamespace had been registered.", assembly.FullName);
-
-                throw new InvalidOperationException(errorMessage);
+                RootNamespaces.Add(assembly, (rootNamespace = GetRootNamespace(resourceStreams)));
             }
 
-            string commonNamespace;
-            if (!RootNamespaces.TryGetValue(assembly, out commonNamespace))
+            if (string.IsNullOrWhiteSpace(rootNamespace))
             {
-                commonNamespace = ExtractAssemblyRootNamespace(assembly);
+                yield break;
             }
 
-            if (string.IsNullOrWhiteSpace(commonNamespace))
+            var resources = resourceStreams
+                .Select(resource => new ResourceViewInfo(resource))
+                .Where(resource => !string.IsNullOrWhiteSpace(resource.Name));
+
+            foreach (var resource in resources)
             {
-                return Enumerable.Empty<ViewLocationResult>();
-            }
+                var location = GetLocation(resource, rootNamespace);
+                var fileName = Path.GetFileNameWithoutExtension(resource.Name);
+                var extension = GetExtension(resource.FullName);
 
-            return
-                from resource in resourceStreams
-                let resourceFileName = GetResourceFileName(resource.Item1)
-                where !resourceFileName.Equals(string.Empty)
-                select new ViewLocationResult(
-                    GetResourceLocation(commonNamespace, resource.Item1, resourceFileName),
-                    Path.GetFileNameWithoutExtension(resourceFileName),
-                    GetResourceExtension(resource.Item1),
-                    resource.Item2);
+                yield return new ViewLocationResult(location, fileName, extension, resource.Contents);
+            }
         }
 
-        private static string GetResourceLocation(string commonNamespace, string resource, string resourceName)
+        private static string GetRootNamespace(IEnumerable<Tuple<string, Func<StreamReader>>> resourceStreams)
         {
-            return resource
-                .Replace(commonNamespace, string.Empty)
-                .Replace(resourceName, string.Empty)
-                .Trim(new[] { '.' })
+            var resourceNames = resourceStreams.Select(x => x.Item1).ToList();
+
+            if (resourceNames.Count == 1)
+            {
+                var resourceName = resourceNames.First();
+
+                var fileName = GetFileName(resourceName);
+
+                return resourceName.Replace(fileName, string.Empty).TrimEnd('.');
+            }
+
+            var pathSegments = resourceNames.Select(name => name.Split('.').AsEnumerable());
+
+            var commonSegments = pathSegments.Aggregate((previous, current) => CreateSegment(current, previous));
+
+            return string.Join(".", commonSegments);
+        }
+
+        private static string GetFileName(string resourceName)
+        {
+            var segments = resourceName.Split('.');
+            if (segments.Length < 2)
+            {
+                return string.Empty;
+            }
+
+            return string.Join(".", segments.Reverse().Take(2).Reverse());
+        }
+
+        private static IEnumerable<string> CreateSegment(IEnumerable<string> current, IEnumerable<string> previous)
+        {
+            return current.TakeWhile((step, index) => step == previous.ElementAtOrDefault(index)).ToArray();
+        }
+
+        private static string GetExtension(string resourceName)
+        {
+            var extension = Path.GetExtension(resourceName);
+            if (extension == null)
+            {
+                return string.Empty;
+            }
+
+            return extension.Substring(1);
+        }
+
+        private static string GetLocation(ResourceViewInfo resource, string rootNamespace)
+        {
+            return resource.FullName
+                .Replace(rootNamespace, string.Empty)
+                .Replace(resource.Name, string.Empty)
+                .Trim('.')
                 .Replace(".", "/");
         }
 
-        private static string ExtractCommonResourceNamespace(IEnumerable<string> resources)
+        private class ResourceViewInfo
         {
-            if (resources.Count() == 1)
+            public ResourceViewInfo(Tuple<string, Func<StreamReader>> resource)
             {
-                var resource = resources.First();
-
-                return resource
-                    .Replace(GetResourceFileName(resource), string.Empty)
-                    .TrimEnd(new[] { '.' });
+                FullName = resource.Item1;
+                Name = GetFileName(resource.Item1);
+                Contents = resource.Item2;
             }
 
-            var commonPathSegments = resources.Select(s => new { parts = s.Split('.') })
-                .Aggregate((previous, current) => new { parts = current.parts.TakeWhile((step, index) => step == previous.parts.ElementAtOrDefault(index)).ToArray() });
+            public string Name { get; private set; }
 
-            var commonResourceNamespace =
-                string.Join(".", commonPathSegments.parts);
+            public string FullName { get; private set; }
 
-            return commonResourceNamespace;
-        }
-
-        private static string ExtractAssemblyRootNamespace(Assembly assembly)
-        {
-            var resources = assembly
-                .GetTypes()
-                .Where(x => !x.IsAnonymousType())
-                .Select(x => x.FullName)
-                .ToList();
-
-            return ExtractCommonResourceNamespace(resources);
-        }
-
-        private static string GetResourceFileName(string resourceName)
-        {
-            var nameSegments =
-                resourceName.Split(new[] { "." }, StringSplitOptions.RemoveEmptyEntries);
-
-            var segmentCount =
-                nameSegments.Count();
-
-            return (segmentCount < 2) ?
-                string.Empty :
-                string.Concat(nameSegments[segmentCount - 2], ".", nameSegments[segmentCount - 1]);
-        }
-
-        private static string GetResourceExtension(string resourceName)
-        {
-            var extension = Path.GetExtension(resourceName);
-            return extension != null ? extension.Substring(1) : string.Empty;
+            public Func<StreamReader> Contents { get; private set; }
         }
     }
 }
