@@ -18,7 +18,7 @@ namespace Nancy.Tests.Unit.ViewEngines
 
         public EmbeddedViewLocationProviderFixture()
         {
-            EmbeddedViewLocationProvider.Ignore.Clear(); 
+            EmbeddedViewLocationProvider.Ignore.Clear();
             this.reader = A.Fake<IResourceReader>();
             this.resourceAssemblyProvider = A.Fake<IResourceAssemblyProvider>();
             this.viewProvider = new EmbeddedViewLocationProvider(this.reader, this.resourceAssemblyProvider);
@@ -62,7 +62,6 @@ namespace Nancy.Tests.Unit.ViewEngines
         {
             // Given
             var extensions = new[] { "html" };
-            
 
             // When
             var result = this.viewProvider.GetLocatedViews(extensions);
@@ -81,7 +80,7 @@ namespace Nancy.Tests.Unit.ViewEngines
                 "Some.Resource.View.html",
                 () => null);
 
-            A.CallTo(() => this.reader.GetResourceStreamMatches(A<Assembly>._, A<IEnumerable<string>>._)).Returns(new[] {match});
+            A.CallTo(() => this.reader.GetResourceStreamMatches(A<Assembly>._, A<IEnumerable<string>>._)).Returns(new[] { match });
 
             // When
             var result = this.viewProvider.GetLocatedViews(extensions);
